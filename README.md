@@ -14,7 +14,7 @@ All tests use live features and AWS infrastructure, and do not contain any mocke
 6. Update lambda definitions and IAM roles from ~/infrastructure/functional-tester/template.json to include references to the S3 locations you deployed the Orchestrator lambda code and Worker lambda code, and references to the bucket you created to hold your functional tester configuration and results.
 
 # Config Files
-The Functional Tester Configuration defines the setup, teardown, and test batches which the functional tester will run. Configuration is stored in and loaded from S3, split across all JSON files located using the Key Prefix configuration/ and containing the string "functional-test".
+The Functional Tester Configuration defines the setup, teardown, and test batches which the functional tester will run. Configuration is stored in and loaded from S3, split across all JSON files located using the Key Prefix "configuration" and containing the string "functional-test".
 
 ## Sample Configuation File
 A sample configuration which puts a record into dynamo, runs a test to see if the expected item exists in dynamo, runs a test to see if invalid parameters give an error, and then remove the item from dynamo.
@@ -82,16 +82,22 @@ A sample configuration which puts a record into dynamo, runs a test to see if th
 Top-level configuration properties contain all configuration information required to run the functional tester.
 
 *setupActions*: List of global setup actions, performed before all test batches are delegated to the functional test worker.	
+
 *testBatches*: List of test batches, delegated by the functional-test-orchestrator lambda to the functional-test-worker lambda.
+
 *teardownActions*: List of global setup actions, performed after all test batches are delegated to the functional test worker.
 
 ## Test Batches
 Test batches are lists of configuration for a specific set of tests, including a name, description, set of setup/teardown actions, and set of tests.
 
 *name*: Test Batch name. Used to identify the test batch in the logs and in the results.
+
 *description*: Test Batch description. Should contain the test batch's purpose and high-level summary.
+
 *setupActions*: List of global setup actions, performed before all test batches are delegated to the functional test worker.
+
 *tests*: List of test batches, delegated by the functional-test-orchestrator lambda to the functional-test-worker lambda.
+
 *teardownActions*: List of global setup actions, performed after all test batches are delegated to the functional test worker.
 
 ### Sample Test Batches
@@ -131,9 +137,13 @@ Test batches are lists of configuration for a specific set of tests, including a
 Tests are lists of actions and expectations which allow us to validate that specific functionality is working.
 
 *name*: Test name. Used to identify the test in the logs and in the results.
+
 *description*: Test description. Should contain the test's purpose and high-level summary.
+
 *setupActions*: List of global setup actions, performed before all test batches are delegated to the functional test worker.
+
 *testActions*: List of test batches, delegated by the functional-test-orchestrator lambda to the functional-test-worker lambda.
+
 *teardownActions*: List of global setup actions, performed after all test batches are delegated to the functional test worker.
 
 ### Sample Test
@@ -166,12 +176,19 @@ Tests are lists of actions and expectations which allow us to validate that spec
 ```
 
 ## Actions
+
 *expectedResponse*:	Object configuring expected success response from the action executor. Compared against the action executor's actual response to determine test success/failure. Comparison behavior is determined by property comparisonType(1).
+
 *expectedError*: Object configuring expected error response from the action executor. Compared against the action executor's actual error to determine test success/failure. Comparison behavior is determined by property comparisonType(1).
+
 *initialWaitMs*: Amount of time (in milliseconds) to wait before beginning the action.
+
 *maxNumRetries*: The maximum number of retries allowed when the action fails. Thus, the total number of action attempts will be this number plus one.
+
 *params*:	Parameters object which will be passed to the action executor. Required properties vary from action type to action type. See Action Type for specific samples.
+
 *type*: Functional tester-supported Action Type. Defines the type of action taken.
+
 *waitBetweenRetriesMs*: Amount of time (in milliseconds) to wait before retrying the action.
 
 (1) Valid values for comparisonType: *equals*, *contains-same-values*. *equals* performs deep-comparison to check for object equality. *contains-same-values* checks that all values contained within the expected object exist and have the same value as the actual response/error.
@@ -208,11 +225,17 @@ Will check that the response error to ensure it contains both "name" and "messag
 Below is a list of all valid action types. Any action type not in this list will cause a configuration validation error.
 
 *awsSdk*: Executes an arbitrary AWS SDK service method. Note: This could fail if the orchestrator or worker does not have proper IAM permissions to perform the requested service method. Depending on your service call, see the AWS SDK Documentation. Parameters should match the SDK parameters.
+
 *dynamoDelete*: Deletes a single item from Dynamo. Accepts AWS SDK parameters.
+
 *dynamoGet*: Gets a single item from Dynamo. Accepts AWS SDK parameters.
+
 *dynamoPut*: Puts a single item into Dynamo. Accepts AWS SDK parameters.
+
 *kinesisPutRecord*:	Puts a single record into Kinesis. Accepts AWS SDK parameters.
+
 *kinesisPutRecords*: Puts a list of records into Kinesis. Accepts AWS SDK parameters.
+
 *lambdaInvoke*: Invokes a lambda synchronously and awaits the result. Accepts AWS SDK parameters.
 
 # ToDos
