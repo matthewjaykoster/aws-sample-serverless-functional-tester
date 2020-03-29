@@ -1,0 +1,79 @@
+{
+    "setupActions": [
+        {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            }
+        }
+    ],
+    "testBatches": [
+        {
+            "name": "sample-test-batch",
+            "description": "A test batch meant to show the structure of the test configuration file(s).",
+            "setupActions": [],
+            "tests": [
+                {
+                    "name": "sample-test-1",
+                    "description": "Tests whether setup worked.",
+                    "setupActions": [],
+                    "testActions": [
+                        {
+                            "type": "dynamoGet",
+                            "params": {
+                                "TableName": "test_Table",
+                                "Key": {
+                                    "key": "this-is-a-key"
+                                }
+                            },
+                            "expectedResponse": {
+                                "comparisonType": "equals",
+                                "response": {
+                                    "Item": {
+                                        "key": "this-is-a-key",
+                                        "property": "chicken"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "type": "dynamoGet",
+                            "params": {
+                                "TableName": "test_Table",
+                                "Key": {
+                                    "key": "does-not-exist"
+                                }
+                            },
+                            "expectedError": {
+                                "comparisonType": "conatins-same-values",
+                                "error": {
+                                    "message": ""
+                                }
+                            },
+                            "initialWaitMs": 0,
+                            "maxNumRetries": 3,
+                            "waitBetweenRetriesMs": 500
+                        }
+                    ],
+                    "teardownActions": []
+                }
+            ],
+            "teardownActions": []
+        }
+    ],
+    "teardownActions": [
+        {
+            "type": "dynamoDelete",
+            "params": {
+                "TableName": "test_Table",
+                "Key": {
+                    "key": "this-is-a-key"
+                }
+            }
+        }
+    ]
+}

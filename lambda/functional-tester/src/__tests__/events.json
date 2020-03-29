@@ -1,0 +1,538 @@
+{
+    "actionsService": {
+        "invalidActionExpectationAndType": {
+            "type": "bad",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "expectedError": {},
+            "expectedResponse": {}
+        },
+        "invalidActionMissingType": {
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            }
+        },
+        "invalidActionBadRetry": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "initialWaitMs": "asdf",
+            "maxNumRetries": [],
+            "waitBetweenRetriesMs": {}
+        },
+        "invalidActionNegativeRetry": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "initialWaitMs": -1,
+            "maxNumRetries": -2,
+            "waitBetweenRetriesMs": -3
+        },
+        "validAction": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            }
+        },
+        "validActionWithExpectedError": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "expectedError": {
+                "comparisonType": "equals",
+                "error": {
+                    "message": "You dun goofed!",
+                    "data": {
+                        "ayeAyeRon": "Dun messed up",
+                        "b-lak-aye": [
+                            "Fail",
+                            "Fail",
+                            "Successs"
+                        ]
+                    }
+                }
+            }
+        },
+        "validActionWithExpectedPrimitiveError": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "expectedError": {
+                "comparisonType": "equals",
+                "error": "Primitive"
+            }
+        },
+        "validActionWithExpectedResponse": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "expectedResponse": {
+                "comparisonType": "equals",
+                "response": {
+                    "status": "WINNER",
+                    "success": true
+                }
+            }
+        },
+        "validActionWithExpectedCompareResponse": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "expectedResponse": {
+                "comparisonType": "conatins-same-values",
+                "response": {
+                    "status": "COMPLEX",
+                    "success": {
+                        "boolean": true,
+                        "yo": 12
+                    },
+                    "empty": {},
+                    "array": [
+                        1,
+                        "pi",
+                        {
+                            "john": false,
+                            "carrie": true,
+                            "array": []
+                        }
+                    ]
+                }
+            }
+        },
+        "validActionWithExpectedPrimitiveResponse": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "expectedResponse": {
+                "comparisonType": "equals",
+                "response": "success"
+            }
+        },
+        "validDynamoGetAction": {
+            "type": "dynamoGet",
+            "params": {
+                "TableName": "test_Table",
+                "Key": {
+                    "key": "this-is-a-key"
+                }
+            }
+        },
+        "validDynamoPutAction": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            }
+        },
+        "validActionWithRetry": {
+            "type": "dynamoPut",
+            "params": {
+                "TableName": "test_Table",
+                "Item": {
+                    "key": "this-is-a-key",
+                    "property": "chicken"
+                }
+            },
+            "initialWaitMs": 0,
+            "maxNumRetries": 1,
+            "waitBetweenRetriesMs": 1
+        }
+    },
+    "awsSdk": {
+        "invalidParams": {
+            "bad": "params"
+        },
+        "invalidService": {
+            "serviceName": "chicken",
+            "method": "balogna"
+        },
+        "valid": {
+            "serviceName": "S3",
+            "serviceParams": {
+                "apiVersion": "2006-03-01"
+            },
+            "method": "copyObject",
+            "methodParams": {
+                "Bucket": "test_Bucket",
+                "CopySource": "/a/key.json",
+                "Key": "/a/copy-destination.json"
+            }
+        }
+    },
+    "dynamoDelete": {
+        "valid": {
+            "TableName": "test_Table",
+            "Key": {
+                "HashKey": "test_key"
+            }
+        }
+    },
+    "dynamoGet": {
+        "valid": {
+            "TableName": "test_Table",
+            "Key": {
+                "HashKey": "test_key"
+            }
+        }
+    },
+    "dynamoPut": {
+        "valid": {
+            "TableName": "test_Table",
+            "Item": {
+                "HashKey": "test_key",
+                "Property": 1
+            }
+        }
+    },
+    "kinesisPutRecord": {
+        "valid": {
+            "StreamName": "test_Stream",
+            "PartitionKey": "testKey",
+            "Data": "Data"
+        }
+    },
+    "kinesisPutRecords": {
+        "valid": {
+            "StreamName": "test_Stream",
+            "Records": [
+                {
+                    "PartitionKey": "testKey",
+                    "Data": "Data"
+                }
+            ]
+        }
+    },
+    "lambdaInvoke": {
+        "valid": {
+            "FunctionName": "test_Lambda",
+            "Payload": "{}"
+        }
+    },
+    "orchestrator": {
+        "codePipeline": {
+            "CodePipeline.job" : {
+                "id": "codepipeline-id"
+            }
+        }
+    },
+    "queryGraphQlApi": {
+        "invalidParams": {
+            "bad": "params"
+        },
+        "validWithAppSyncApi": {
+            "url": "https://test.com",
+            "query": "get(test_id: \"testId\"){ test_prop }",
+            "appSyncApiId": "test_AppSync_API"
+        },
+        "valid": {
+            "url": "https://test.com",
+            "query": "get(test_id: \"testId\"){ test_prop }"
+        }
+    },
+    "testBatchService": {
+        "testBatchMissingThings": {
+            "setupActions": [],
+            "tests": [],
+            "teardownActions": []
+        },
+        "testBatchValidNoSetupNoTeardown": {
+            "name": "test-batch",
+            "description": "this is for testing only",
+            "tests": [
+                {
+                    "name": "sample-test-1",
+                    "description": "Sample test.",
+                    "testActions": [
+                        {
+                            "type": "dynamoGet",
+                            "params": {
+                                "TableName": "test_Table",
+                                "Key": {
+                                    "key": "this-is-a-key"
+                                }
+                            },
+                            "expectedResponse": {
+                                "comparisonType": "equals",
+                                "response": {
+                                    "Item": {
+                                        "key": "this-is-a-key",
+                                        "property": "chicken"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "testBatchValid": {
+            "name": "test-batch",
+            "description": "this is for testing only",
+            "setupActions": [
+                {
+                    "type": "dynamoGet",
+                    "params": {
+                        "TableName": "test_Table",
+                        "Key": {
+                            "key": "this-is-a-key"
+                        }
+                    }
+                }
+            ],
+            "tests": [
+                {
+                    "name": "sample-test-1",
+                    "description": "Sample test.",
+                    "testActions": [
+                        {
+                            "type": "dynamoGet",
+                            "params": {
+                                "TableName": "test_Table",
+                                "Key": {
+                                    "key": "this-is-a-key"
+                                }
+                            },
+                            "expectedResponse": {
+                                "comparisonType": "equals",
+                                "response": {
+                                    "Item": {
+                                        "key": "this-is-a-key",
+                                        "property": "chicken"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "teardownActions": [
+                {
+                    "type": "dynamoGet",
+                    "params": {
+                        "TableName": "test_Table",
+                        "Key": {
+                            "key": "this-is-a-key"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "testService": {
+        "testMissingThings": {
+            "setupActions": [],
+            "testActions": [],
+            "teardownActions": []
+        },
+        "testValid": {
+            "name": "sample-test-1",
+            "description": "Sample test.",
+            "setupActions": [
+                {
+                    "type": "dynamoPut",
+                    "params": {
+                        "TableName": "test_Table",
+                        "Key": {
+                            "key": "this-is-a-key"
+                        }
+                    }
+                }
+            ],
+            "testActions": [
+                {
+                    "type": "dynamoGet",
+                    "params": {
+                        "TableName": "test_Table",
+                        "Key": {
+                            "key": "this-is-a-key"
+                        }
+                    },
+                    "expectedResponse": {
+                        "comparisonType": "equals",
+                        "response": {
+                            "Item": {
+                                "key": "this-is-a-key",
+                                "property": "chicken"
+                            }
+                        }
+                    }
+                }
+            ],
+            "teardownActions": [
+                {
+                    "type": "dynamoDelete",
+                    "params": {
+                        "TableName": "test_Table",
+                        "Key": {
+                            "key": "this-is-a-key"
+                        }
+                    }
+                }
+            ]
+        },
+        "testValidNoSetupNoTeardown": {
+            "name": "sample-test-1",
+            "description": "Sample test.",
+            "testActions": [
+                {
+                    "type": "dynamoGet",
+                    "params": {
+                        "TableName": "test_Table",
+                        "Key": {
+                            "key": "this-is-a-key"
+                        }
+                    },
+                    "expectedResponse": {
+                        "comparisonType": "equals",
+                        "response": {
+                            "Item": {
+                                "key": "this-is-a-key",
+                                "property": "chicken"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "worker": {
+        "testBatchMissingThings": {
+            "setupActions": [],
+            "tests": [],
+            "teardownActions": []
+        },
+        "testBatchValidNoSetupNoTeardown": {
+            "name": "test-batch",
+            "description": "this is for testing only",
+            "tests": [
+                {
+                    "name": "sample-test-1",
+                    "description": "Sample test.",
+                    "testActions": [
+                        {
+                            "type": "dynamoGet",
+                            "params": {
+                                "TableName": "test_Table",
+                                "Key": {
+                                    "key": "this-is-a-key"
+                                }
+                            },
+                            "expectedResponse": {
+                                "comparisonType": "equals",
+                                "response": {
+                                    "Item": {
+                                        "key": "this-is-a-key",
+                                        "property": "chicken"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "testBatchValid": {
+            "name": "test-batch",
+            "description": "this is for testing only",
+            "setupActions": [
+                {
+                    "type": "dynamoGet",
+                    "params": {
+                        "TableName": "test_Table",
+                        "Key": {
+                            "key": "this-is-a-key"
+                        }
+                    }
+                }
+            ],
+            "tests": [
+                {
+                    "name": "sample-test-1",
+                    "description": "Sample test.",
+                    "testActions": [
+                        {
+                            "type": "dynamoGet",
+                            "params": {
+                                "TableName": "test_Table",
+                                "Key": {
+                                    "key": "this-is-a-key"
+                                }
+                            },
+                            "expectedResponse": {
+                                "comparisonType": "equals",
+                                "response": {
+                                    "Item": {
+                                        "key": "this-is-a-key",
+                                        "property": "chicken"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ],
+            "teardownActions": [
+                {
+                    "type": "dynamoGet",
+                    "params": {
+                        "TableName": "test_Table",
+                        "Key": {
+                            "key": "this-is-a-key"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

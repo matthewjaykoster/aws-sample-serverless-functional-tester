@@ -1,0 +1,293 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Sample CodePipeline template integrating the functional tester.",
+	"Parameters": {
+		"CodePipelineArtifacts": {
+			"Description": "Artifact S3 bucket for the pipeline.",
+			"Type": "String"
+		},
+		"InfrastructureObjectKey": {
+			"Description": "Name of an input infrastructure artifact",
+			"Type": "String"
+		},
+		"Environment": {
+			"Description": "Environment that the pipeline is targeting.",
+			"Type": "String",
+			"AllowedValues": [
+				"dev",
+				"qa",
+				"prod"
+			]
+		}
+	},
+	"Resources": {
+		"CodePipelineRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"RoleName": {
+					"Fn::Sub": "${AWS::StackName}-Role"
+				},
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+								"Service": [
+									"codepipeline.amazonaws.com",
+									"cloudformation.amazonaws.com"
+								]
+							},
+							"Action": [
+								"sts:AssumeRole"
+							]
+						}
+					]
+				},
+				"Path": "/",
+				"Policies": [
+					{
+						"PolicyName": "root",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Action": [
+										"iam:PassRole"
+									],
+									"Resource": "*",
+									"Effect": "Allow",
+									"Condition": {
+										"StringEqualsIfExists": {
+											"iam:PassedToService": [
+												"cloudformation.amazonaws.com"
+											]
+										}
+									}
+								},
+								{
+									"Action": [
+										"codedeploy:CreateDeployment",
+										"codedeploy:GetApplication",
+										"codedeploy:GetApplicationRevision",
+										"codedeploy:GetDeployment",
+										"codedeploy:GetDeploymentConfig",
+										"codedeploy:RegisterApplicationRevision"
+									],
+									"Resource": "*",
+									"Effect": "Allow"
+								},
+								{
+									"Action": [
+										"lambda:InvokeFunction",
+										"lambda:ListFunctions"
+									],
+									"Resource": "*",
+									"Effect": "Allow"
+								},
+								{
+									"Action": [
+										"iam:*",
+										"sqs:*",
+										"lambda:*",
+										"cloudwatch:*",
+										"events:*",
+										"cloudfront:*",
+										"route53:*",
+										"kinesis:*",
+										"s3:*",
+										"kms:decrypt",
+										"dynamodb:*",
+										"ssm:PutParameter",
+										"ssm:DeleteParameter*",
+										"ssm:DescribeParameter",
+										"ssm:GetParameter*",
+										"appsync:*",
+										"secretsmanager:GetSecretValue",
+										"codebuild:DeleteProject",
+										"codebuild:CreateProject",
+										"codebuild:ListProjects",
+										"codebuild:UpdateProject",
+										"codebuild:CreateWebhook",
+										"codebuild:DeleteWebhook",
+										"codebuild:UpdateWebhook",
+										"logs:*",
+										"glue:*",
+										"firehose:*"
+									],
+									"Resource": "*",
+									"Effect": "Allow"
+								},
+								{
+									"Action": [
+										"cloudformation:CreateStack",
+										"cloudformation:DeleteStack",
+										"cloudformation:DescribeStacks",
+										"cloudformation:UpdateStack",
+										"cloudformation:CreateChangeSet",
+										"cloudformation:DeleteChangeSet",
+										"cloudformation:DescribeChangeSet",
+										"cloudformation:ExecuteChangeSet",
+										"cloudformation:SetStackPolicy",
+										"cloudformation:ValidateTemplate"
+									],
+									"Resource": "*",
+									"Effect": "Allow"
+								},
+								{
+									"Action": [
+										"codebuild:BatchGetBuilds",
+										"codebuild:StartBuild"
+									],
+									"Resource": "*",
+									"Effect": "Allow"
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"s3:ListBucket"
+									],
+									"Resource": [
+										{
+											"Fn::Sub": "arn:aws:s3:::${CodePipelineArtifacts}"
+										},
+										{
+											"Fn::Sub": "arn:aws:s3:::lambdas-${AWS::AccountId}-${Environment}"
+										}
+									]
+								},
+								{
+									"Effect": "Allow",
+									"Action": [
+										"s3:PutObject",
+										"s3:GetObject",
+										"s3:GetObjectVersion"
+									],
+									"Resource": [
+										{
+											"Fn::Sub": "arn:aws:s3:::${CodePipelineArtifacts}/*"
+										},
+										{
+											"Fn::Sub": "arn:aws:s3:::lambdas-${AWS::AccountId}-${Environment}/*"
+										}
+									]
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"CodePipeline": {
+			"Type": "AWS::CodePipeline::Pipeline",
+			"Properties": {
+				"ArtifactStore": {
+					"Type": "S3",
+					"Location": {
+						"Ref": "CodePipelineArtifacts"
+					}
+				},
+				"RestartExecutionOnUpdate": false,
+				"Name": {
+					"Fn::Sub": "${AWS::StackName}"
+				},
+				"RoleArn": {
+					"Fn::GetAtt": [
+						"CodePipelineRole",
+						"Arn"
+					]
+				},
+				"Stages": [
+					{
+						"Name": "Source",
+						"Actions": [
+							{
+								"Name": "SourceAction",
+								"ActionTypeId": {
+									"Category": "Source",
+									"Owner": "AWS",
+									"Version": "1",
+									"Provider": "S3"
+								},
+								"OutputArtifacts": [
+									{
+										"Name": "infrastructure"
+									}
+								],
+								"Namespace": "Variables",
+								"Configuration": {
+									"S3Bucket": {
+										"Ref": "CodePipelineArtifacts"
+									},
+									"S3ObjectKey": {
+										"Ref": "InfrastructureObjectKey"
+									}
+								},
+								"RunOrder": 1
+							}
+						]
+					},
+					{
+						"Name": "Environment",
+						"Actions": [
+							{
+								"Name": "functional-tester-code",
+								"ActionTypeId": {
+									"Category": "Deploy",
+									"Owner": "AWS",
+									"Provider": "CloudFormation",
+									"Version": "1"
+								},
+								"InputArtifacts": [
+									{
+										"Name": "infrastructure"
+									}
+								],
+								"Configuration": {
+									"ActionMode": "CREATE_UPDATE",
+									"Capabilities": "CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND",
+									"ParameterOverrides": {
+										"Fn::Sub": "{\"Environment\": \"${Environment}\",\"LambdaBucket\": \"lambdas-${AWS::AccountId}-${Environment}\"}"
+									},
+									"RoleArn": {
+										"Fn::GetAtt": [
+											"CodePipelineRole",
+											"Arn"
+										]
+									},
+									"StackName": {
+										"Fn::Sub": "functional-tester-${Environment}"
+									},
+									"TemplatePath": "infrastructure::environment/functional-tester/template.json"
+								},
+								"OutputArtifacts": [],
+								"RunOrder": 2
+							}
+						]
+					},
+					{
+						"Name": "Functional-Tests",
+						"Actions": [
+                            {
+                                "Name": "run-tests",
+                                "ActionTypeId": {
+                                    "Category": "Invoke",
+                                    "Owner": "AWS",
+                                    "Version": 1,
+                                    "Provider": "Lambda"
+                                },
+                                "Configuration": {
+                                    "FunctionName": {
+										"Fn::Sub": "${Environment}-functional-tester-orchestrator"
+                                    }
+                                },
+                                "RunOrder": 1
+                            }
+                        ]
+					}
+				]
+			}
+		}
+	},
+	"Outputs": {}
+}

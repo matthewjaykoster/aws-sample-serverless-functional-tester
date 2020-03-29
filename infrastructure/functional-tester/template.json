@@ -1,0 +1,233 @@
+{
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Parameters": {
+        "LambdaBucket": {
+            "Type": "String"
+        },
+        "Environment": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "FunctionalTesterOrchestratorFunction": {
+            "Type": "AWS::Serverless::Function",
+            "DependsOn": [
+                "FunctionalTesterOrchestratorFunctionRole",
+                "FunctionalTesterWorkerFunction"
+            ],
+            "Properties": {
+                "FunctionName": {
+                    "Fn::Sub": "${Environment}-functional-tester-orchestrator"
+                },
+                "Runtime": "nodejs12.x",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "FunctionalTesterOrchestratorFunctionRole",
+                        "Arn"
+                    ]
+                },
+                "CodeUri": {
+                    "Bucket": {
+                        "Ref": "LambdaBucket"
+                    },
+                    "Key": {
+                        "Fn::Sub": "${Environment}/functional-tester/code.zip"
+                    }
+                },
+                "Handler": "src/orchestrator.handler",
+                "AutoPublishAlias": "live",
+                "Environment": {
+                    "Variables": {
+                        "FT_BUCKET_NAME": {
+                            "Fn::Sub": "functional-tester-${AWS::AccountId}-${Environment}"
+                        },
+                        "FT_WORKER_LAMBDA_NAME": {
+                            "Ref": "FunctionalTesterWorkerFunction"
+                        }
+                    }
+                },
+                "MemorySize": 256,
+                "Timeout": 600,
+                "Events": {
+                    "Event": {
+                        "Type": "Schedule",
+                        "Properties": {
+                            "Name": {
+                                "Fn::Sub": "${Environment}-functional-tester-orchestrator"
+                            },
+                            "Description": "Run the functional tester once an hour.",
+                            "Enabled": true,
+                            "Schedule": "rate(1 hour)"
+                        }
+                    }
+                }
+            }
+        },
+        "FunctionalTesterOrchestratorFunctionRole": {
+            "Type": "AWS::IAM::Role",
+            "DependsOn": [
+                "FunctionalTesterWorkerFunction"
+            ],
+            "Properties": {
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                ],
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "AllowLambdaServiceToAssumeRole",
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "FunctionalTesterOrchestratorPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:ListBucket"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:aws:s3:::functional-tester-${AWS::AccountId}-${Environment}"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:PutObject",
+                                        "s3:GetObject",
+                                        "s3:GetObjectVersion"
+                                    ],
+                                    "Resource": [
+                                        {
+                                            "Fn::Sub": "arn:aws:s3:::functional-tester-${AWS::AccountId}-${Environment}/*"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "codepipeline:PutJobSuccessResult",
+                                        "codepipeline:PutJobFailureResult"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "PolicyName": "FuncationalTesterActionsPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "appsync:*",
+                                        "dynamodb:*",
+                                        "lambda:InvokeFunction",
+                                        "kinesis:*"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "FunctionalTesterWorkerFunction": {
+            "Type": "AWS::Serverless::Function",
+            "DependsOn": [
+                "FunctionalTesterWorkerFunctionRole"
+            ],
+            "Properties": {
+                "FunctionName": {
+                    "Fn::Sub": "${Environment}-functional-tester-worker"
+                },
+                "Runtime": "nodejs12.x",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "FunctionalTesterWorkerFunctionRole",
+                        "Arn"
+                    ]
+                },
+                "CodeUri": {
+                    "Bucket": {
+                        "Ref": "LambdaBucket"
+                    },
+                    "Key": {
+                        "Fn::Sub": "${Environment}/functional-tester/code.zip"
+                    }
+                },
+                "Handler": "src/worker.handler",
+                "AutoPublishAlias": "live",
+                "MemorySize": 256,
+                "Timeout": 600
+            }
+        },
+        "FunctionalTesterWorkerFunctionRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+                ],
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "AllowLambdaServiceToAssumeRole",
+                            "Effect": "Allow",
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "FuncationalTesterActionsPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "appsync:*",
+                                        "dynamodb:*",
+                                        "lambda:InvokeFunction",
+                                        "kinesis:*"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {}
+}

@@ -1,0 +1,24 @@
+{
+  "name": "functional-tester",
+  "version": "1.0.0",
+  "description": "Code for multiple lambdas which orchestrate and work a functional test run based on tests configured in S3.",
+  "dependencies": {
+    "deep-equal": "^2.0.1",
+    "graphql-request": "^1.8.2",
+    "lambda-log": "^2.3.1"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.610.0",
+    "aws-sdk-mock": "^5.0.0",
+    "jest": "^25.1.0"
+  },
+  "scripts": {
+    "prune": "rm -rf node_modules coverage src/__tests__",
+    "package": "run-s package:zip package:clean",
+    "package:zip": "zip -rq code.zip src/ node_modules/",
+    "package:clean": "ls | grep -v code.zip | xargs rm -rf"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
